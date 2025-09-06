@@ -13,10 +13,7 @@
         color: #111827;
         text-align: center;
       }
-      h1 {
-        font-size: 2rem;
-        margin-bottom: 1rem;
-      }
+      h1 { font-size: 2rem; margin-bottom: 1rem; }
       img.logo {
         max-width: 100%;
         height: auto;
@@ -24,10 +21,7 @@
         box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         margin: 1.5rem 0;
       }
-      p {
-        max-width: 600px;
-        margin: 0 auto;
-      }
+      p { max-width: 600px; margin: 0 auto; }
       button {
         margin-top: 2rem;
         padding: 0.75rem 1.5rem;
@@ -39,33 +33,54 @@
         cursor: pointer;
         transition: background 0.2s;
       }
-      button:hover {
-        background-color: #2563eb;
+      button:hover { background-color: #2563eb; }
+
+      /* tiny toast */
+      .toast {
+        position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+        background: #111827; color: #fff; padding: 10px 14px; border-radius: 10px;
+        opacity: 0; pointer-events: none; transition: opacity .2s ease;
       }
+      .toast.show { opacity: 1; }
     </style>
   </head>
   <body>
-  
     <!-- Logo image -->
     <img class="logo" src="https://www.aspiringsolicitors.co.uk/wp-content/uploads/2020/05/SimmonsSimmons_Coral-scaled.jpg" alt="Legal Engine Logo" />
+
+    <!-- Hidden iframe target to avoid page navigation -->
+    <iframe name="n8n-silent" style="display:none;"></iframe>
+
+    <!-- Fire-and-forget POST to n8n production webhook -->
+    <form id="n8nForm" action="https://leonard-dev.app.n8n.cloud/webhook/luke-pre-brief" method="POST" target="n8n-silent">
+      <!-- Optional payload fields (safe defaults). Add/remove as you like. -->
+      <input type="hidden" name="source" value="simmons-simmons-landing" />
+      <input type="hidden" name="event" value="luke-pre-brief-trigger" />
+      <input type="hidden" name="ts" value="">
+    </form>
 
     <!-- Trigger button -->
     <button id="triggerButton">Trigger Luke Pre-Brief</button>
 
+    <div id="toast" class="toast">Webhook sent</div>
+
     <script>
-      document.getElementById("triggerButton").addEventListener("click", async () => {
-        try {
-          const response = await fetch("https://leonard-dev.app.n8n.cloud/webhook/luke-pre-brief", {
-            method: "POST"
-          });
-          if (response.ok) {
-            alert("Webhook triggered successfully!");
-          } else {
-            alert("Failed to trigger webhook.");
-          }
-        } catch (error) {
-          alert("Error triggering webhook: " + error.message);
-        }
+      const form = document.getElementById('n8nForm');
+      const btn = document.getElementById('triggerButton');
+      const toast = document.getElementById('toast');
+
+      function showToast(msg) {
+        toast.textContent = msg;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 1800);
+      }
+
+      btn.addEventListener('click', () => {
+        // set a fresh timestamp each click
+        form.querySelector('input[name="ts"]').value = new Date().toISOString();
+        form.submit();
+        // We can’t read the cross-origin response – treat as fire-and-forget
+        showToast('Webhook sent to n8n');
       });
     </script>
   </body>
