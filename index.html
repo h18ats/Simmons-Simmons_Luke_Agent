@@ -13,7 +13,6 @@
         color: #111827;
         text-align: center;
       }
-      h1 { font-size: 2rem; margin-bottom: 1rem; }
       img.logo {
         max-width: 100%;
         height: auto;
@@ -21,7 +20,6 @@
         box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         margin: 1.5rem 0;
       }
-      p { max-width: 600px; margin: 0 auto; }
       button {
         margin-top: 2rem;
         padding: 0.75rem 1.5rem;
@@ -34,49 +32,126 @@
         transition: background 0.2s;
       }
       button:hover { background-color: #2563eb; }
-      .toast {
-        position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
-        background: #111827; color: #fff; padding: 10px 14px; border-radius: 10px;
-        opacity: 0; pointer-events: none; transition: opacity .2s ease;
+      .status {
+        margin-top: 1rem;
+        font-size: 0.95rem;
+        color: #374151;
       }
-      .toast.show { opacity: 1; }
+      .ok { color: #065f46; }
+      .warn { color: #92400e; }
+      .err { color: #991b1b; }
     </style>
   </head>
   <body>
-    <!-- Logo image -->
     <img class="logo" src="https://www.aspiringsolicitors.co.uk/wp-content/uploads/2020/05/SimmonsSimmons_Coral-scaled.jpg" alt="Legal Engine Logo" />
 
-    <!-- Hidden iframe to keep the page in place -->
+    <!-- Hidden iframe & form (used as a later fallback) -->
     <iframe name="n8n-silent" style="display:none;"></iframe>
-
-    <!-- Fire-and-forget POST to n8n PRODUCTION webhook -->
     <form id="n8nForm" action="https://leonard-dev.app.n8n.cloud/webhook/luke-pre-brief" method="POST" target="n8n-silent">
-      <!-- Optional payload -->
       <input type="hidden" name="source" value="simmons-simmons-landing" />
       <input type="hidden" name="event" value="luke-pre-brief-trigger" />
       <input type="hidden" name="ts" value="">
     </form>
 
-    <!-- Trigger button -->
     <button id="triggerButton">Trigger Luke Pre-Brief</button>
-
-    <div id="toast" class="toast">Webhook sent</div>
+    <div id="status" class="status" aria-live="polite"></div>
 
     <script>
-      const form = document.getElementById('n8nForm');
-      const btn = document.getElementById('triggerButton');
-      const toast = document.getElementById('toast');
+      const PROD_URL = "https://leonard-dev.app.n8n.cloud/webhook/luke-pre-brief";
+      // Optional: if you enable GET on your n8n Webhook node, this is used as a last resort.
+      const GET_FALLBACK_URL = "https://leonard-dev.app.n8n.cloud/webhook/luke-pre-brief";
 
-      function showToast(msg) {
-        toast.textContent = msg;
-        toast.classList.add('show');
-        setTimeout(() => toast.classList.remove('show'), 1800);
+      const statusEl = document.getElementById("status");
+      const form = document.getElementById("n8nForm");
+      const btn = document.getElementById("triggerButton");
+
+      function setStatus(msg, cls = "") {
+        statusEl.className = "status " + cls;
+        statusEl.textContent = msg;
       }
 
-      btn.addEventListener('click', () => {
-        form.querySelector('input[name="ts"]').value = new Date().toISOString();
-        form.submit();
-        showToast('Webhook sent to n8n');
+      function payload() {
+        const params = new URLSearchParams();
+        params.set("source", "simmons-simmons-landing");
+        params.set("event", "luke-pre-brief-trigger");
+        params.set("ts", new Date().toISOString());
+        return params;
+      }
+
+      async function trySendBeacon() {
+        try {
+          if (!("sendBeacon" in navigator)) return false;
+          const data = payload();
+          const blob = new Blob([data.toString()], {
+            type: "application/x-www-form-urlencoded;charset=UTF-8"
+          });
+          const ok = navigator.sendBeacon(PROD_URL, blob);
+          if (ok) setStatus("Sent via sendBeacon ✔ (check n8n Executions).", "ok");
+          return ok; // true if queued successfully
+        } catch (e) {
+          return false;
+        }
+      }
+
+      async function tryFetchNoCors() {
+        try {
+          // Fire-and-forget; cannot read response in no-cors.
+          await fetch(PROD_URL, {
+            method: "POST",
+            mode: "no-cors",
+            keepalive: true,
+            headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
+            body: payload().toString()
+          });
+          setStatus("Sent via fetch(no-cors) ✔ (response is opaque).", "ok");
+          return true;
+        } catch (e) {
+          return false;
+        }
+      }
+
+      function tryFormIframe() {
+        try {
+          form.querySelector('input[name="ts"]').value = new Date().toISOString();
+          form.submit();
+          setStatus("Sent via hidden form/iframe ✔", "ok");
+          return true;
+        } catch (e) {
+          return false;
+        }
+      }
+
+      function finalGetFallback() {
+        try {
+          // Opens a new tab to avoid any frame/CSP restrictions.
+          const qp = payload();
+          const url = GET_FALLBACK_URL + "?" + qp.toString();
+          window.open(url, "_blank", "noopener,noreferrer");
+          setStatus("Opened GET webhook in a new tab. Ensure your n8n Webhook node also allows GET.", "warn");
+          return true;
+        } catch (e) {
+          return false;
+        }
+      }
+
+      btn.addEventListener("click", async () => {
+        setStatus("Triggering…");
+        // 1) sendBeacon
+        if (await trySendBeacon()) return;
+
+        // 2) fetch no-cors
+        const fetched = await tryFetchNoCors();
+        if (fetched) return;
+
+        // 3) hidden form → iframe
+        const posted = tryFormIframe();
+        if (posted) return;
+
+        // 4) GET fallback in new tab
+        const opened = finalGetFallback();
+        if (opened) return;
+
+        setStatus("Could not trigger webhook from browser. Likely a strict CSP (form-action/connect-src).", "err");
       });
     </script>
   </body>
