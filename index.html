@@ -18,20 +18,8 @@
   <!-- Logo -->
   <img class="logo" src="https://www.aspiringsolicitors.co.uk/wp-content/uploads/2020/05/SimmonsSimmons_Coral-scaled.jpg" alt="Legal Engine Logo" />
 
-  <!-- Visible POST (opens in new tab so you can see n8n receive it) -->
-  <form action="https://leonard-dev.app.n8n.cloud/webhook/simmons-luke" method="POST" target="_blank">
-    <input type="hidden" name="source" value="simmons-simmons-landing">
-    <input type="hidden" name="event" value="luke-pre-brief-trigger">
-    <input type="hidden" name="ts" value="">
-    <button type="submit" class="btn"
-      onclick="this.form.elements.ts.value = new Date().toISOString();">
-      Trigger (show response)
-    </button>
-  </form>
-  <div class="subtle">Opens n8n’s webhook response in a new tab for easy verification.</div>
-
   <!-- Silent POST (stays on page) -->
-  <iframe name="n8n-silent" style="display:none;"></iframe>
+  <iframe name="Meeting Complete" style="display:none;"></iframe>
   <form id="silentForm" action="https://leonard-dev.app.n8n.cloud/webhook/simmons-luke" method="POST" target="n8n-silent">
     <input type="hidden" name="source" value="simmons-simmons-landing">
     <input type="hidden" name="event" value="luke-pre-brief-trigger">
@@ -41,7 +29,7 @@
     const f = document.getElementById('silentForm');
     f.elements.ts.value = new Date().toISOString();
     f.submit();
-    alert('Sent to n8n (silent). Check Executions in n8n.');
+    alert('Sent to n8n. Check Executions in n8n.');
   ">
     Trigger (silent)
   </button>
