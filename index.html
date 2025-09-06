@@ -34,8 +34,6 @@
         transition: background 0.2s;
       }
       button:hover { background-color: #2563eb; }
-
-      /* tiny toast */
       .toast {
         position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
         background: #111827; color: #fff; padding: 10px 14px; border-radius: 10px;
@@ -48,12 +46,12 @@
     <!-- Logo image -->
     <img class="logo" src="https://www.aspiringsolicitors.co.uk/wp-content/uploads/2020/05/SimmonsSimmons_Coral-scaled.jpg" alt="Legal Engine Logo" />
 
-    <!-- Hidden iframe target to avoid page navigation -->
+    <!-- Hidden iframe to keep the page in place -->
     <iframe name="n8n-silent" style="display:none;"></iframe>
 
-    <!-- Fire-and-forget POST to n8n production webhook -->
+    <!-- Fire-and-forget POST to n8n PRODUCTION webhook -->
     <form id="n8nForm" action="https://leonard-dev.app.n8n.cloud/webhook/luke-pre-brief" method="POST" target="n8n-silent">
-      <!-- Optional payload fields (safe defaults). Add/remove as you like. -->
+      <!-- Optional payload -->
       <input type="hidden" name="source" value="simmons-simmons-landing" />
       <input type="hidden" name="event" value="luke-pre-brief-trigger" />
       <input type="hidden" name="ts" value="">
@@ -76,10 +74,8 @@
       }
 
       btn.addEventListener('click', () => {
-        // set a fresh timestamp each click
         form.querySelector('input[name="ts"]').value = new Date().toISOString();
         form.submit();
-        // We can’t read the cross-origin response – treat as fire-and-forget
         showToast('Webhook sent to n8n');
       });
     </script>
