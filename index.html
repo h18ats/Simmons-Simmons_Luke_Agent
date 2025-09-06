@@ -1,14 +1,49 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>Trigger n8n Webhook</title>
+  <meta charset="utf-8" />
+  <title>Simmons+Simmons Luke Agent</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    body { font-family: system-ui, Arial, sans-serif; margin: 2rem; line-height: 1.6; background:#f9fafb; color:#111827; text-align:center; }
+    img.logo { max-width:100%; height:auto; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,.1); margin:1.5rem 0; }
+    .btn { margin-top: 1rem; padding:.75rem 1.5rem; font-size:1rem; border:0; border-radius:8px; background:#1d4ed8; color:#fff; cursor:pointer; }
+    .btn:hover { background:#2563eb; }
+    .btn.secondary { background:#374151; }
+    .btn.secondary:hover { background:#4b5563; }
+    .subtle { font-size:.9rem; color:#4b5563; margin-top:.5rem; }
+  </style>
 </head>
 <body>
-  <form action="https://leonard-dev.app.n8n.cloud/webhook/simmons-luke" method="POST">
-    <input type="hidden" name="source" value="simple-html">
-    <input type="hidden" name="event" value="button-click">
-    <button type="submit">Trigger Webhook</button>
+  <!-- Logo -->
+  <img class="logo" src="https://www.aspiringsolicitors.co.uk/wp-content/uploads/2020/05/SimmonsSimmons_Coral-scaled.jpg" alt="Legal Engine Logo" />
+
+  <!-- Visible POST (opens in new tab so you can see n8n receive it) -->
+  <form action="https://leonard-dev.app.n8n.cloud/webhook/simmons-luke" method="POST" target="_blank">
+    <input type="hidden" name="source" value="simmons-simmons-landing">
+    <input type="hidden" name="event" value="luke-pre-brief-trigger">
+    <input type="hidden" name="ts" value="">
+    <button type="submit" class="btn"
+      onclick="this.form.elements.ts.value = new Date().toISOString();">
+      Trigger (show response)
+    </button>
   </form>
+  <div class="subtle">Opens n8n’s webhook response in a new tab for easy verification.</div>
+
+  <!-- Silent POST (stays on page) -->
+  <iframe name="n8n-silent" style="display:none;"></iframe>
+  <form id="silentForm" action="https://leonard-dev.app.n8n.cloud/webhook/simmons-luke" method="POST" target="n8n-silent">
+    <input type="hidden" name="source" value="simmons-simmons-landing">
+    <input type="hidden" name="event" value="luke-pre-brief-trigger">
+    <input type="hidden" name="ts" value="">
+  </form>
+  <button class="btn secondary" onclick="
+    const f = document.getElementById('silentForm');
+    f.elements.ts.value = new Date().toISOString();
+    f.submit();
+    alert('Sent to n8n (silent). Check Executions in n8n.');
+  ">
+    Trigger (silent)
+  </button>
 </body>
 </html>
