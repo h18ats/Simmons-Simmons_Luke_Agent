@@ -5,117 +5,256 @@
     <title>Simmons+Simmons Luke Agent</title>
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <style>
+      :root {
+        --bg: #f9fafb;
+        --fg: #0f172a;
+        --muted: #6b7280;
+        --brand: #ef4444; /* coral-ish */
+        --brand-600: #dc2626;
+        --ring: rgba(239, 68, 68, 0.35);
+        --card: #ffffff;
+        --ok: #16a34a;
+        --err: #dc2626;
+      }
+      * { box-sizing: border-box; }
       body {
-        font-family: system-ui, Arial, sans-serif;
-        margin: 2rem;
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+        margin: 0;
+        padding: 2rem 1.25rem 4rem;
         line-height: 1.6;
-        background: #f9fafb;
-        color: #111827;
-        text-align: center;
+        background: var(--bg);
+        color: var(--fg);
+        display: grid;
+        place-items: start center;
+        gap: 1.5rem;
       }
-      h1 {
-        font-size: 2rem;
-        margin-bottom: 1rem;
-      }
+      header { text-align: center; }
+      h1 { font-size: clamp(1.35rem, 2.2vw + 1rem, 2rem); margin: 0.25rem 0 0.5rem; }
+      p.lead { margin: 0 auto; max-width: 56ch; color: var(--muted); }
       img.logo {
-        max-width: 100%;
+        width: min(920px, 92vw);
         height: auto;
-        border-radius: 12px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        margin: 1.5rem 0;
+        border-radius: 14px;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+        display: block;
+        margin: 0.75rem auto 0;
       }
-      p {
-        max-width: 600px;
-        margin: 0 auto;
+
+      /* Card */
+      .card {
+        background: var(--card);
+        border-radius: 16px;
+        padding: 1rem;
+        box-shadow: 0 6px 22px rgba(15, 23, 42, 0.08);
+        width: min(720px, 92vw);
+      }
+      .card h2 { font-size: 1.05rem; margin: 0 0 0.25rem; }
+      .hint { color: var(--muted); font-size: 0.92rem; margin: 0 0 0.75rem; }
+
+      /* Controls */
+      .row { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; }
+      .spacer { flex: 1; }
+      .btn {
+        appearance: none;
+        border: none;
+        border-radius: 999px;
+        padding: 0.7rem 1.05rem;
+        font-weight: 600;
+        cursor: pointer;
+        background: var(--brand);
+        color: #fff;
+        box-shadow: 0 6px 18px rgba(239, 68, 68, 0.25);
+        transition: transform .05s ease, box-shadow .2s ease, background .2s ease;
+      }
+      .btn:hover { background: var(--brand-600); box-shadow: 0 8px 24px rgba(239, 68, 68, 0.3); }
+      .btn:active { transform: translateY(1px); }
+      .btn[disabled] { opacity: .6; cursor: not-allowed; }
+
+      .link {
+        font-weight: 600;
+        text-decoration: none;
+        padding: 0.55rem 0.9rem;
+        border-radius: 999px;
+        border: 1px solid rgba(15,23,42,.08);
+        background: #fff;
+        color: var(--fg);
+      }
+      .url {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: .85rem;
+        padding: .5rem .75rem;
+        background: #f3f4f6;
+        border-radius: 10px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      /* Toast */
+      .toast {
+        position: fixed;
+        inset: auto 1rem 1rem auto;
+        max-width: 80vw;
+        background: #fff;
+        color: var(--fg);
+        border-radius: 12px;
+        padding: .75rem 1rem;
+        box-shadow: 0 10px 26px rgba(15, 23, 42, .18);
+        opacity: 0;
+        transform: translateY(8px);
+        pointer-events: none;
+        transition: opacity .25s ease, transform .25s ease;
+        border-left: 6px solid transparent;
+        white-space: pre-wrap;
+      }
+      .toast.show { opacity: 1; transform: translateY(0); }
+      .toast.ok { border-left-color: var(--ok); }
+      .toast.err { border-left-color: var(--err); }
+
+      /* Accessibility */
+      .sr-only {
+        position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden;
+        clip: rect(0,0,0,0); white-space: nowrap; border: 0;
       }
     </style>
   </head>
   <body>
-  
+    <header>
+      <h1>Simmons &amp; Simmons — Luke Agent</h1>
+      <p class="lead">Trigger the Legal Engine n8n webhook with one click. If CORS prevents a readable response, we’ll fall back to a background form POST so it still reaches n8n reliably.</p>
+      <img class="logo" src="https://www.aspiringsolicitors.co.uk/wp-content/uploads/2020/05/SimmonsSimmons_Coral-scaled.jpg" alt="Simmons &amp; Simmons brand image" />
+    </header>
 
-    <!-- Logo image -->
-    <img class="logo" src="https://www.aspiringsolicitors.co.uk/wp-content/uploads/2020/05/SimmonsSimmons_Coral-scaled.jpg" alt="Legal Engine Logo" />
+    <!-- Webhook Card -->
+    <section class="card" aria-labelledby="webhook-title">
+      <h2 id="webhook-title">Webhook</h2>
+      <p class="hint">Default URL and method can be changed in the markup below if needed.</p>
 
- <!-- Webhook widget: set your webhook URL/method/token here via data-* attributes -->
-    <div
-      id="le-webhook-widget"
-      class="webhook-fab"
-      data-url="https://leonard-dev.app.n8n.cloud/webhook/simmons-luke"   <!-- ← CHANGE THIS -->
-      data-method="POST"                        <!-- POST or GET -->
-    >
-      <button id="le-webhook-btn" class="webhook-btn">Click Here -> </button>
-      <a id="le-webhook-link" class="webhook-link" target="_blank" rel="noopener">Test n8n Flow</a>
-    </div>
-    <div id="le-webhook-log" class="webhook-log" aria-live="polite"></div>
+      <!-- Display URL for clarity/copy -->
+      <div class="row" style="margin-bottom:.5rem;">
+        <div class="url" id="webhook-url-display" title="Webhook URL"></div>
+        <span class="spacer"></span>
+        <a id="webhook-test" class="link" target="_blank" rel="noopener">Open as GET</a>
+      </div>
+
+      <div class="row">
+        <button id="webhook-send" class="btn">Send to n8n</button>
+        <a id="webhook-open-post" class="link" href="#" role="button">POST in new tab</a>
+      </div>
+
+      <!-- Config (clean attributes; no inline comments) -->
+      <div id="le-webhook-widget"
+           data-url="https://leonard-dev.app.n8n.cloud/webhook/luke-pre-brief"
+           data-method="POST">
+        <span class="sr-only">Webhook config container</span>
+      </div>
+
+      <!-- Hidden form + iframe (CORS-proof fallback) -->
+      <iframe title="Webhook POST target" name="webhook_sink" style="display:none;"></iframe>
+      <form id="webhook-form" action="https://leonard-dev.app.n8n.cloud/webhook/luke-pre-brief" method="POST" target="webhook_sink" style="display:none;">
+        <input type="hidden" name="clicked" value="true" />
+        <input type="hidden" name="source" value="web-page" />
+        <input type="hidden" name="timestamp" id="form-timestamp" value="" />
+      </form>
+    </section>
+
+    <!-- Toast -->
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
     <script>
       (function () {
         const widget = document.getElementById('le-webhook-widget');
-        const btn = document.getElementById('le-webhook-btn');
-        const link = document.getElementById('le-webhook-link');
-        const log = document.getElementById('le-webhook-log');
+        const btn = document.getElementById('webhook-send');
+        const linkGET = document.getElementById('webhook-test');
+        const linkPOSTNewTab = document.getElementById('webhook-open-post');
+        const urlDisplay = document.getElementById('webhook-url-display');
+        const form = document.getElementById('webhook-form');
+        const formTs = document.getElementById('form-timestamp');
+        const toast = document.getElementById('toast');
 
-        // Configure defaults and read from data-* attributes
-        const config = {
-          url: widget?.dataset.url || 'https://example.com/webhook',
-          method: (widget?.dataset.method || 'POST').toUpperCase(),
-          token: widget?.dataset.token || '',
-          getParams: { clicked: 'true', source: 'github-pages' },
-          payload: { clicked: true, source: 'github-pages' }
-        };
+        const WEBHOOK_URL = (widget?.dataset.url || '').trim();
+        const METHOD = (widget?.dataset.method || 'POST').toUpperCase();
 
-        function showLog(text, type) {
-          log.textContent = text;
-          log.classList.remove('success', 'error');
-          if (type) log.classList.add(type);
-          log.classList.add('show');
-          clearTimeout(showLog._t);
-          showLog._t = setTimeout(() => log.classList.remove('show'), 6000);
-        }
-
+        // Show URL / wire links
+        urlDisplay.textContent = WEBHOOK_URL || 'No webhook URL configured';
         function buildGetUrl() {
-          const u = new URL(config.url);
-          Object.entries(config.getParams).forEach(([k, v]) => u.searchParams.set(k, v));
-          u.searchParams.set('t', Date.now().toString());
-          return u.toString();
+          try {
+            const u = new URL(WEBHOOK_URL);
+            u.searchParams.set('clicked', 'true');
+            u.searchParams.set('source', 'web-page');
+            u.searchParams.set('t', Date.now().toString());
+            return u.toString();
+          } catch {
+            return '#';
+          }
+        }
+        linkGET.href = buildGetUrl();
+
+        // Helper: toast
+        function showToast(message, status) {
+          toast.textContent = message;
+          toast.classList.remove('ok', 'err');
+          if (status === 'ok') toast.classList.add('ok');
+          if (status === 'err') toast.classList.add('err');
+          toast.classList.add('show');
+          clearTimeout(showToast._t);
+          showToast._t = setTimeout(() => toast.classList.remove('show'), 5000);
         }
 
-        function updateLink() {
-          try { link.href = buildGetUrl(); }
-          catch { link.removeAttribute('href'); }
-        }
+        // POST in new tab (navigation) – avoids CORS by letting the browser navigate
+        linkPOSTNewTab.addEventListener('click', (e) => {
+          e.preventDefault();
+          const w = window.open('', '_blank', 'noopener,noreferrer');
+          if (!w) { showToast('Popup blocked. Allow popups for POST in new tab.', 'err'); return; }
 
-        async function sendWebhook() {
-          const url = config.url;
-          const method = config.method;
-          if (!url) { showLog('No webhook URL configured.', 'error'); return; }
+          // Build a temporary form that submits into the new tab
+          const f = document.createElement('form');
+          f.method = 'POST';
+          f.action = WEBHOOK_URL;
+          f.target = w.name || '_blank';
+          const payload = { clicked: 'true', source: 'web-page', timestamp: new Date().toISOString() };
+          Object.entries(payload).forEach(([k, v]) => {
+            const i = document.createElement('input');
+            i.type = 'hidden'; i.name = k; i.value = v; f.appendChild(i);
+          });
+          document.body.appendChild(f);
+          f.submit();
+          f.remove();
+          showToast('Posted via new tab.', 'ok');
+        });
 
+        // Main button – try fetch first, fall back to hidden form if CORS blocks us
+        btn.addEventListener('click', async () => {
+          if (!WEBHOOK_URL) { showToast('No webhook URL configured.', 'err'); return; }
           btn.disabled = true;
-          showLog('Sending…');
+          showToast('Sending…');
+
+          const payload = { clicked: true, source: 'web-page', timestamp: new Date().toISOString() };
 
           try {
-            let res;
-            if (method === 'GET') {
-              res = await fetch(buildGetUrl(), { method: 'GET' });
-            } else {
-              const headers = { 'Content-Type': 'application/json' };
-              if (config.token) headers['X-Webhook-Token'] = config.token;
-              const body = JSON.stringify({ ...config.payload, timestamp: new Date().toISOString() });
-              res = await fetch(url, { method: 'POST', headers, body });
-            }
+            const res = await fetch(WEBHOOK_URL, {
+              method: METHOD,
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload),
+            });
 
-            const text = await res.text();
-            showLog(`Status: ${res.status} ${res.statusText}\n\n${text}`, res.ok ? 'success' : 'error');
+            // If CORS allows, we can read status
+            let msg = `Sent. Status: ${res.status} ${res.statusText}`;
+            try {
+              const text = await res.text();
+              if (text) msg += `\n\n${text.slice(0, 600)}`;
+            } catch { /* ignore */ }
+            showToast(msg, res.ok ? 'ok' : 'err');
           } catch (err) {
-            showLog(`Request failed (likely CORS on receiver):\n\n${err}`, 'error');
+            // Fallback: hidden form POST (works regardless of CORS)
+            form.action = WEBHOOK_URL;
+            formTs.value = new Date().toISOString();
+            form.submit();
+            showToast('Sent via fallback (CORS-safe form POST).', 'ok');
           } finally {
             btn.disabled = false;
           }
-        }
-
-        // Init
-        updateLink();
-        btn.addEventListener('click', sendWebhook);
+        });
       })();
     </script>
   </body>
